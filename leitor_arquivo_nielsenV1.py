@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import time
 
 def parse_txt_file(file):
     """
@@ -49,55 +50,69 @@ def parse_txt_file(file):
     return pd.DataFrame(parsed_data)
 
 def main():
-    st.title('Processador de Arquivo TXT com Filtro por Loja')
+    st.title('Leitor de Arquivo EDI NIelsen Consinco TOTVS')
     st.write('Faça upload de um arquivo .txt com layout específico')
 
     # Upload do arquivo
     uploaded_file = st.file_uploader("Escolha um arquivo .txt", type="txt")
 
     if uploaded_file is not None:
-        try:
-            # Parsear o arquivo
-            df = parse_txt_file(uploaded_file)
+        st.success("Arquivo carregado com sucesso! Clique no botão para iniciar a análise.")
 
-            # Filtrar por Código Loja
-            st.subheader('Filtro por Código Loja')
-            lojas = df['Código Loja'].unique()  # Obter lista de lojas únicas
-            loja_selecionada = st.selectbox('Selecione o Código da Loja', sorted(lojas))
+        if st.button("Analisar"):
+            with st.status("Analisando Dados...", expanded=True) as status:
+                st.write("Formatando Dados...")
+                time.sleep(2)
+                st.write("Identificando Layout...")
+                time.sleep(1)
 
-            # Filtrar os dados pela loja selecionada
-            df_filtrado = df[df['Código Loja'] == loja_selecionada]
+                # Parsear o arquivo
+                df = parse_txt_file(uploaded_file)
+                st.session_state['df'] = df  # Armazenar o DataFrame na sessão
 
-            # Mostrar prévia dos dados filtrados
-            st.subheader('Dados Filtrados')
-            st.dataframe(df_filtrado)
+                status.update(
+                    label=f"Pronto! Layout identificado.", state="complete", expanded=True
+                )
 
-            # Opção para baixar dados como CSV (usando ponto e vírgula como separador)
-            csv = df_filtrado.to_csv(index=False, sep=';')  # Alterado para usar ponto e vírgula
-            st.download_button(
-                label="Baixar dados filtrados como CSV",
-                data=csv,
-                file_name=f'dados_loja_{loja_selecionada}.csv',
-                mime='text/csv'
-            )
+    # Verificar se o DataFrame já foi carregado
+    if 'df' in st.session_state:
+        df = st.session_state['df']
 
-            # Estatísticas para a loja selecionada
-            st.subheader(f'Estatísticas para a Loja {loja_selecionada}')
-            total_registros = len(df_filtrado)
-            total_quantidade_vendida = df_filtrado['Quantidade Vendida'].astype(str).str.replace(",", ".").astype(float).sum()
-            total_valor_venda = df_filtrado['Valor Venda'].astype(str).str.replace(",", ".").astype(float).sum()
+        # Filtrar por Código Loja
+        st.subheader('Filtro por Código Loja')
+        lojas = df['Código Loja'].unique()  # Obter lista de lojas únicas
+        loja_selecionada = st.selectbox('Selecione o Código da Loja', sorted(lojas))
 
-            col1, col2 = st.columns(2)
+        # Filtrar os dados pela loja selecionada
+        df_filtrado = df[df['Código Loja'] == loja_selecionada]
 
-            with col1:
-                st.metric('Total de Registros', total_registros)
-                st.metric('Total Quantidade Vendida', f"{total_quantidade_vendida:,.3f}".replace(",", " ").replace(".", ",").replace(" ", ""))
+        # Mostrar prévia dos dados filtrados
+        st.subheader('Dados Filtrados')
+        st.dataframe(df_filtrado)
 
-            with col2:
-                st.metric('Total Valor Venda', f'R$ {total_valor_venda:,.2f}'.replace(",", " ").replace(".", ",").replace(" ", ""))
+        # Opção para baixar dados como CSV (usando ponto e vírgula como separador)
+        csv = df_filtrado.to_csv(index=False, sep=';')  # Alterado para usar ponto e vírgula
+        st.download_button(
+            label="Baixar dados filtrados como CSV",
+            data=csv,
+            file_name=f'dados_loja_{loja_selecionada}.csv',
+            mime='text/csv'
+        )
 
-        except Exception as e:
-            st.error(f"Erro no processamento: {e}")
+        # Estatísticas para a loja selecionada
+        st.subheader(f'Estatísticas para a Loja {loja_selecionada}')
+        total_registros = len(df_filtrado)
+        total_quantidade_vendida = df_filtrado['Quantidade Vendida'].astype(str).str.replace(",", ".").astype(float).sum()
+        total_valor_venda = df_filtrado['Valor Venda'].astype(str).str.replace(",", ".").astype(float).sum()
+
+        col1, col2 = st.columns(2)
+
+        with col1:
+            st.metric('Total de Registros', total_registros)
+            st.metric('Total Quantidade Vendida', f"{total_quantidade_vendida:,.3f}".replace(",", " ").replace(".", ",").replace(" ", ""))
+
+        with col2:
+            st.metric('Total Valor Venda', f'R$ {total_valor_venda:,.2f}'.replace(",", " ").replace(".", ",").replace(" ", ""))
 
 if __name__ == '__main__':
     main()
