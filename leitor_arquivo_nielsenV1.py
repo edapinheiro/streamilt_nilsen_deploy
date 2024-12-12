@@ -153,7 +153,7 @@ def main():
                     return
 
                 status.update(
-                    label="Análise completa!", state="complete", expanded=False
+                    label="Análise completa!", state="complete", expanded=True
                 )
 
             # Filtro por loja
