@@ -48,7 +48,7 @@ def parse_txt_2016(file):
     for linha in content.split('\n'):
         if linha.strip():
             try:
-                # Mapeamento de campos baseado no layout fornecido
+                # Mapeamento de campos baseado no layout fornecido layout 2016
                 codigo_loja = linha[0:10].strip()
                 cod_barras = linha[10:23].strip()
                 descricao = linha[23:93].strip()
@@ -87,6 +87,7 @@ def parse_txt_full(file):
     for linha in content.split('\n'):
         if linha.strip():
             try:
+                # Mapeamento de campos baseado no layout fornecido layout Full
                 codigo_loja = linha[0:10].strip()
                 cod_barras = linha[10:24].strip()
                 descricao = linha[24:94].strip()
@@ -130,8 +131,12 @@ def main():
 
         if st.button("Analisar"):
             with st.status("Processando o arquivo...", expanded=True) as status:
-                st.write("Identificando layout...")
+                st.write("Analisando Arquivo...")
                 time.sleep(2)
+                st.write("Formatando Dados...")
+                time.sleep(2)
+                st.write("Identificando layout...")
+                time.sleep(1)
 
                 primeira_linha = uploaded_file.readline().decode('cp1252').strip()
                 layout, soma_caracteres = identificar_layout(primeira_linha)
